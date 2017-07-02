@@ -1,0 +1,79 @@
+=========== Starting HIVE ========================
+
+cloudera@cloudera-vm:~$ hive
+Hive history file=/tmp/cloudera/hive_job_log_cloudera_201308060028_1231918129.txt
+
+========== Creating Database – “marketevaluation” ================
+
+hive> Create database marketevaluation;
+OK
+Time taken: 3.391 seconds
+
+Creating Table – “CaliforniaMarketEvaluation”
+
+hive> CREATE TABLE IF NOT EXISTS CaliforniaMarketEvaluation
+    > (
+    > marketName STRING,
+    > website STRING,
+    > city STRING,
+    > state STRING,
+    > evaluation STRING,
+    > rating STRING
+    > )
+    > ROW FORMAT DELIMITED
+    > FIELDS TERMINATED BY ',';
+OK
+Time taken: 0.088 seconds
+
+========== Loading Map-Reduce Output data into above Table ====================
+
+hive> LOAD DATA LOCAL INPATH '/home/cloudera/CaliforniaMarketEvaluationOutput-part-00000' INTO TABLE CaliforniaMarketEvaluation;                
+
+Copying data from file:/home/cloudera/CaliforniaMarketEvaluationOutput-part-00000
+Copying file: file:/home/cloudera/CaliforniaMarketEvaluationOutput-part-00000
+Loading data to table default.californiamarketevaluation
+OK
+Time taken: 0.114 seconds
+
+
+============ HIVE Query to Count Number of Market Evaluated as “High” =================
+
+hive> select count(*) from CaliforniaMarketEvaluation where evaluation LIKE '%High%';
+
+Total MapReduce jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks determined at compile time: 1
+In order to change the average load for a reducer (in bytes):
+  set hive.exec.reducers.bytes.per.reducer=<number>
+In order to limit the maximum number of reducers:
+  set hive.exec.reducers.max=<number>
+In order to set a constant number of reducers:
+  set mapred.reduce.tasks=<number>
+Starting Job = job_201308052034_0029, Tracking URL = http://localhost:50030/jobdetails.jsp?jobid=job_201308052034_0029
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -Dmapred.job.tracker=localhost:8021 -kill job_201308052034_0029
+2013-08-06 01:48:13,424 Stage-1 map = 0%,  reduce = 0%
+2013-08-06 01:48:16,438 Stage-1 map = 100%,  reduce = 0%
+2013-08-06 01:48:22,471 Stage-1 map = 100%,  reduce = 33%
+2013-08-06 01:48:23,474 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_201308052034_0029
+OK
+195
+Time taken: 13.361 seconds
+
+============== HIVE Query to List the Details of Sunnyvale Markets ===================
+
+hive> select * from CaliforniaMarketEvaluation where city LIKE '%Sunnyvale%';
+Total MapReduce jobs = 1
+Launching Job 1 out of 1
+Number of reduce tasks is set to 0 since there's no reduce operator
+Starting Job = job_201308052034_0030, Tracking URL = http://localhost:50030/jobdetails.jsp?jobid=job_201308052034_0030
+Kill Command = /usr/lib/hadoop/bin/hadoop job  -Dmapred.job.tracker=localhost:8021 -kill job_201308052034_0030
+2013-08-06 01:50:13,318 Stage-1 map = 0%,  reduce = 0%
+2013-08-06 01:50:16,326 Stage-1 map = 100%,  reduce = 0%
+2013-08-06 01:50:17,330 Stage-1 map = 100%,  reduce = 100%
+Ended Job = job_201308052034_0030
+OK
+Full Circle Farm Stand   http://www.fullcirclesunnyvale.org      Sunnyvale       California             Low     20%
+Sunnyvale Farmers' Market        http://www.urbanvillageonline.com       Sunnyvale       California             High    92%
+Time taken: 5.312 seconds
+

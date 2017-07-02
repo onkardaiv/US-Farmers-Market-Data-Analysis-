@@ -1,0 +1,118 @@
+sudo jps
+#kill all ids 
+cd $HADOOP_HOME
+cd sbin/
+sudo ./start-dfs.sh
+sudo ./start-yarn.sh
+sudo /usr/lib/hadoop-2.2.0/sbin/mr-jobhistory-daemon.sh start historyserver
+
+hadoop fs -rm -r project
+hadoop fs -mkdir project
+hadoop fs -put /home/edureka/Desktop/project/DATA_GOV_US_Farmers_Market_DataSet.csv project/
+hadoop fs -ls project
+
+#open pig
+Data_Load = LOAD 'project/DATA_GOV_US_Farmers_Market_DataSet.csv' USING PigStorage(',') AS
+(
+FMID:int,
+MarketName:chararray,
+Website:chararray,
+Street:chararray,
+City:chararray,
+County:chararray,
+State:chararray,
+Zip:int,
+Schedule:chararray,
+x:double,
+y:double,
+Location:chararray,
+Credit,
+WIC,
+WICcash,
+SFMNP,
+SNAP,
+Bakedgoods,
+Cheese,
+Crafts,
+Flowers,
+Eggs,
+Seafood,
+Herbs,
+Vegetables,
+Honey,
+Jams,
+Maple,
+Meat,
+Nursery,
+Nuts,
+Plants,
+Poultry,
+Prepared,
+Soap,
+Trees,
+Wine,
+updateTime:chararray
+);
+========== Generating Filtered Data Set =======================
+California = FILTER Data_Load by State == 'California';
+California_DataSet = FOREACH California GENERATE
+MarketName, 
+Website, 
+City, 
+State, 
+Credit,
+WIC,
+WICcash,
+SFMNP,
+SNAP,
+Bakedgoods,
+Cheese,
+Crafts,
+Flowers,
+Eggs,
+Seafood,
+Herbs,
+Vegetables,
+Honey,
+Jams,
+Maple,
+Meat,
+Nursery,
+Nuts,
+Plants,
+Poultry,
+Prepared,
+Soap,
+Trees,
+Wine;
+Store California_DataSet into 'project/California_DataSet' using PigStorage(',');
+
+#verify
+hadoop fs -ls project/California_DataSet
+
+#map_reduce
+
+hadoop fs -rm -r market_rating
+hadoop jar /home/edureka/Desktop/project/MAP-REDUCE/mapreduce-hadoop-2.0.jar in.edureka.project.MarketEvaluation project/California_DataSet/part-m-00000 market_rating
+
+#hive
+drop database marketevaluation cascade;
+Create database marketevaluation;
+use marketevaluation;
+CREATE TABLE IF NOT EXISTS CaliforniaMarketEvaluation
+(
+marketName STRING,
+website STRING,
+city STRING,
+state STRING,
+evaluation STRING,
+rating STRING
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ',';
+
+LOAD DATA INPATH 'market_rating/part-r-00000' INTO TABLE CaliforniaMarketEvaluation;  
+
+select count(*) from CaliforniaMarketEvaluation where evaluation LIKE '%High%';
+
+select * from CaliforniaMarketEvaluation where city LIKE '%Sunnyvale%';

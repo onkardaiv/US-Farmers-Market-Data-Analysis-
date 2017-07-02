@@ -1,0 +1,108 @@
+======== Copy Data Set from Cloudera Local to HDFS ============
+
+cloudera@cloudera-vm:~$ hadoop dfs -copyFromLocal '/home/cloudera/DATA_GOV_US_Farmers_Market_DataSet.csv' '/YogeshProject/DATA_GOV_US_Farmers_Market_DataSet.csv'
+
+cloudera@cloudera-vm:~$ hadoop dfs -ls /YogeshProject
+
+
+========= Starting PIG ==================
+
+cloudera@cloudera-vm:~$ pig
+
+
+========= Loading Data Set ==============
+
+grunt> Data_Load = LOAD '/YogeshProject/DATA_GOV_US_Farmers_Market_DataSet.csv' USING PigStorage(',') AS
+(
+FMID:int,
+MarketName:chararray,
+Website:chararray,
+Street:chararray,
+City:chararray,
+County:chararray,
+State:chararray,
+Zip:int,
+Schedule:chararray,
+x:double,
+y:double,
+Location:chararray,
+Credit,
+WIC,
+WICcash,
+SFMNP,
+SNAP,
+Bakedgoods,
+Cheese,
+Crafts,
+Flowers,
+Eggs,
+Seafood,
+Herbs,
+Vegetables,
+Honey,
+Jams,
+Maple,
+Meat,
+Nursery,
+Nuts,
+Plants,
+Poultry,
+Prepared,
+Soap,
+Trees,
+Wine,
+updateTime:chararray
+);
+
+
+========== Filtering Data Set for California =========================
+
+grunt> California = FILTER Data_Load by State == 'California';
+
+
+========== Generating Filtered Data Set =======================
+
+grunt> California_DataSet = FOREACH California GENERATE
+MarketName, 
+Website, 
+City, 
+State, 
+Credit,
+WIC,
+WICcash,
+SFMNP,
+SNAP,
+Bakedgoods,
+Cheese,
+Crafts,
+Flowers,
+Eggs,
+Seafood,
+Herbs,
+Vegetables,
+Honey,
+Jams,
+Maple,
+Meat,
+Nursery,
+Nuts,
+Plants,
+Poultry,
+Prepared,
+Soap,
+Trees,
+Wine;
+
+
+=========== Storing Filtered Data Set ======================
+
+grunt> Store California_DataSet into '/YogeshProject/California_DataSet' using PigStorage(',');
+
+
+========== Verifying Stored Data ==========================
+
+
+cloudera@cloudera-vm:~$ hadoop dfs -ls /YogeshProject/California_DataSet
+Found 2 items
+drwxr-xr-x   - cloudera supergroup          0 2013-08-05 21:14 /YogeshProject/California_DataSet/_logs
+-rw-r--r--   1 cloudera supergroup      99194 2013-08-05 21:14 /YogeshProject/California_DataSet/part-m-00000
